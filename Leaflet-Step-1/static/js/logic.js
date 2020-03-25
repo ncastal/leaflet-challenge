@@ -26,10 +26,10 @@ function createFeatures(earthquakeData){
   
   // Define streetmap and darkmap layers
   function createMap(earthquakes)
-  {var streetmap = L.tileLayer("https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}", {
+  {var lightmap = L.tileLayer("https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}", {
     attribution: "Map data &copy; <a href=\"https://www.openstreetmap.org/\">OpenStreetMap</a> contributors, <a href=\"https://creativecommons.org/licenses/by-sa/2.0/\">CC-BY-SA</a>, Imagery © <a href=\"https://www.mapbox.com/\">Mapbox</a>",
     maxZoom: 18,
-    id: "mapbox.streets",
+    id: "mapbox.light",
     accessToken: API_KEY
   });
   
@@ -42,7 +42,7 @@ function createFeatures(earthquakeData){
   
   // Define a baseMaps object to hold our base layers
   var baseMaps = {
-    "Street Map": streetmap,
+    "Light Map": lightmap,
     "Dark Map": darkmap
   };
   
@@ -52,7 +52,7 @@ function createFeatures(earthquakeData){
       37.09, -95.71
     ],
     zoom: 5,
-    layers: [streetmap]
+    layers: [lightmap]
   });
 
   
@@ -65,45 +65,73 @@ function createFeatures(earthquakeData){
     collapsed: false
   }).addTo(myMap);
 
-// Create a circle and pass in some initial options
-/* L.circle([45.52, -122.69], {
-    color: "green",
-    fillColor: "green",
-    fillOpacity: 0.75,
-    radius: 10000
-  }).addTo(myMap); */
   console.log(Object.keys(earthquakes._layers).length)
+  function getColor(d) {
+    return d > 5  ? '#E31A1C' :
+           d > 4  ? '#FC4E2A' :
+           d > 3   ? '#FD8D3C' :
+           d > 2   ? '#FEB24C' :
+           d > 1   ? '#FED976' :
+                      '#FFEDA0';
+}
  for(var i = 1; i<Object.keys(earthquakes._layers).length;i++){
-     console.log(i) 
-try
-{  var lat = earthquakes._layers[i]._latlng.lat;
-  var lng = earthquakes._layers[i]._latlng.lng;
-  var mag = earthquakes._layers[i].feature.properties.mag;
-  console.log(lng)
-  console.log(lat)
-  console.log(mag)
-  var color;
-if(mag<=1){
-    color="lightgreen";
+     //console.log(i) 
+      //try to see if a value is stored in earthquake for current iteriation of loop, otherwise move to next item in object
+      try
+        { var lat = earthquakes._layers[i]._latlng.lat;
+          var lng = earthquakes._layers[i]._latlng.lng;
+          var mag = earthquakes._layers[i].feature.properties.mag;
+          //console.log(lng)
+          //console.log(lat)
+          //console.log(mag)
+          var color=getColor(mag);
+/*         if(mag<=1){
+            color="lightgreen";
+        }
+        else if(mag<=2){
+            color="yellow";
+        }
+        else if(mag<=3){
+            color="orange"
+        }
+        else if(mag<=4){
+            color="coral"
+        }
+        else{
+            color="red";
+        } */
+            L.circle([lat, lng], {
+                color: color,
+                fillColor: color,
+                fillOpacity: 0.75,
+                radius: mag*50000}).bindPopup("<h3>" + earthquakes._layers[i].feature.properties.place +
+                "</h3><hr><p>" + new Date(earthquakes._layers[i].feature.properties.time) + "</p>").addTo(myMap);}
+      catch(e){
+        //catches if an error occurs and moves to next item in Object
+          i++;
 }
-else if(mag<=2){
-    color="yellow";
-}
-else if(mag<=3){
-    color="orange"
-}
-else if(mag<=4){
-    color="red"
-}
-else{
-    color="red";
-}
-    L.circle([lat, lng], {
-        color: color,
-        fillColor: color,
-        fillOpacity: 0.75,
-        radius: mag*50000}).addTo(myMap);}
-catch(e){
-    i++;
-}
-  }}
+  };
+  var legend = L.control({position: 'bottomright'});
+
+
+
+  legend.onAdd = function (map) {
+  
+      var div = L.DomUtil.create('div', 'info legend'),
+          grades = [0, 1, 2, 3, 4, 5],
+          labels = [];
+  
+      // loop through our density intervals and generate a label with a colored square for each interval
+      for (var i = 0; i < grades.length; i++) {
+          div.innerHTML +=
+              '<i style="background:' + getColor(grades[i] + 1) + '"></i> ' +
+              grades[i] + (grades[i + 1] ? '&ndash;' + grades[i + 1] + '<br>' : '+');
+      }
+  
+      return div;
+  };
+  
+  legend.addTo(myMap);
+
+
+};
