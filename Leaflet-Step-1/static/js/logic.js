@@ -1,25 +1,14 @@
-
-// Store our API endpoint as queryUrl
-var queryUrl = "http://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&starttime=2014-01-01&endtime=" +
-"2014-01-02&maxlongitude=-69.52148437&minlongitude=-123.83789062&maxlatitude=48.74894534&minlatitude=25.16517337";
+//url for earthquake json
+var queryUrl = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geojson";
 
 d3.json(queryUrl, function(data){
-    //console.log(data);
-
+  
     createFeatures(data.features);
 });
 
 function createFeatures(earthquakeData){
 
-    function onEachFeature(feature, layer){
-
-        layer.bindPopup("<h3>" + feature.properties.place +
-        "</h3><hr><p>" + new Date(feature.properties.time) + "</p>");
-    }
-    var earthquakes =L.geoJson(earthquakeData, {
-      onEachFeature:onEachFeature
-    });
-    console.log(earthquakes._layers)
+    var earthquakes =L.geoJson(earthquakeData);
 
     createMap(earthquakes)
 }
@@ -56,14 +45,7 @@ function createFeatures(earthquakeData){
   });
 
   
-  // Create a layer control containing our baseMaps
-  var overlayMaps={
-    Earthquakes:earthquakes
-  }
-  // Be sure to add an overlay Layer containing the earthquake GeoJSON
-  L.control.layers(baseMaps,overlayMaps, {
-    collapsed: false
-  }).addTo(myMap);
+  L.control.layers(baseMaps).addTo(myMap);
 
   console.log(Object.keys(earthquakes._layers).length)
   function getColor(d) {
@@ -75,36 +57,20 @@ function createFeatures(earthquakeData){
                       '#FFEDA0';
 }
  for(var i = 1; i<Object.keys(earthquakes._layers).length;i++){
-     //console.log(i) 
+    
       //try to see if a value is stored in earthquake for current iteriation of loop, otherwise move to next item in object
       try
         { var lat = earthquakes._layers[i]._latlng.lat;
           var lng = earthquakes._layers[i]._latlng.lng;
           var mag = earthquakes._layers[i].feature.properties.mag;
-          //console.log(lng)
-          //console.log(lat)
-          //console.log(mag)
+
           var color=getColor(mag);
-/*         if(mag<=1){
-            color="lightgreen";
-        }
-        else if(mag<=2){
-            color="yellow";
-        }
-        else if(mag<=3){
-            color="orange"
-        }
-        else if(mag<=4){
-            color="coral"
-        }
-        else{
-            color="red";
-        } */
+
             L.circle([lat, lng], {
                 color: color,
                 fillColor: color,
                 fillOpacity: 0.75,
-                radius: mag*50000}).bindPopup("<h3>" + earthquakes._layers[i].feature.properties.place +
+                radius: mag*20000}).bindPopup("<h3>" + earthquakes._layers[i].feature.properties.place +
                 "</h3><hr><p>" + new Date(earthquakes._layers[i].feature.properties.time) + "</p>").addTo(myMap);}
       catch(e){
         //catches if an error occurs and moves to next item in Object
