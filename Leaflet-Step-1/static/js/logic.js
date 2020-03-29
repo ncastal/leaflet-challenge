@@ -1,3 +1,4 @@
+var API_KEY=prompt("Please enter API key for mapbox")
 //url for earthquake json
 var queryUrl = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geojson";
 

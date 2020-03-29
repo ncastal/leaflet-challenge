@@ -1,13 +1,11 @@
-//url for earthquake and tectonicjson
+var API_KEY=prompt("Enter API key")
+//url for earthquake json
 var queryUrl = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geojson";
-var tectPlatesUrl="https://raw.githubusercontent.com/fraxen/tectonicplates/master/GeoJSON/PB2002_plates.json";
 
 d3.json(queryUrl, function(data){
   
     createFeatures(data.features);
 });
-
-
 
 function createFeatures(earthquakeData){
 
@@ -47,7 +45,8 @@ function createFeatures(earthquakeData){
     layers: [lightmap]
   });
 
-
+  
+  L.control.layers(baseMaps).addTo(myMap);
 
   console.log(Object.keys(earthquakes._layers).length)
   function getColor(d) {
@@ -58,8 +57,6 @@ function createFeatures(earthquakeData){
            d > 1   ? '#FED976' :
                       '#FFEDA0';
 }
-
-var circleMarkers=[];
  for(var i = 1; i<Object.keys(earthquakes._layers).length;i++){
     
       //try to see if a value is stored in earthquake for current iteriation of loop, otherwise move to next item in object
@@ -70,20 +67,17 @@ var circleMarkers=[];
 
           var color=getColor(mag);
 
-            circle=L.circle([lat, lng], {
+            L.circle([lat, lng], {
                 color: color,
                 fillColor: color,
                 fillOpacity: 0.75,
                 radius: mag*20000}).bindPopup("<h3>" + earthquakes._layers[i].feature.properties.place +
-                "</h3><hr><p>" + new Date(earthquakes._layers[i].feature.properties.time) + "</p>");
-              circleMarkers.push(circle)}
+                "</h3><hr><p>" + new Date(earthquakes._layers[i].feature.properties.time) + "</p>").addTo(myMap);}
       catch(e){
         //catches if an error occurs and moves to next item in Object
           i++;
 }
   };
-
-  
   var legend = L.control({position: 'bottomright'});
 
 
@@ -103,29 +97,8 @@ var circleMarkers=[];
   
       return div;
   };
-
-  d3.json(tectPlatesUrl, function(data){
-    createTectFeatures(data.features);
-  })
-  var mapStyle = {
-    color: "white",
-    weight: 1.5
-  };
-  function createTectFeatures(tectPlateData){
-    var tectPlates=L.geoJson(tectPlateData,{
-      style:mapStyle
-    })
-  };
-  var overlayMaps={
-    "Earthquakes":circleMarkers
-  };
-
-  L.control.layers(baseMaps,overlayMaps,{
-    collapsed:false
-  }).addTo(myMap);
   
   legend.addTo(myMap);
 
 
 };
-
